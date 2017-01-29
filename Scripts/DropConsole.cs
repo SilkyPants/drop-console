@@ -5,9 +5,10 @@ using System.Collections.Generic;
 using System;
 using System.Text;
 
-public delegate string ConsoleCommandCallback(params string[] args);
+public delegate string ConsoleCommandCallback (params string[] args);
 
-class ConsoleCommand {
+class ConsoleCommand
+{
 
 	public string Command {
 		get;
@@ -24,51 +25,52 @@ class ConsoleCommand {
 		private set;
 	}
 
-	public ConsoleCommand(string command, ConsoleCommandCallback invoke, string helpText) {
+	public ConsoleCommand (string command, ConsoleCommandCallback invoke, string helpText) {
 		Command = command;
 		Invoke = invoke;
 		HelpText = helpText;
 	}
 }
 
-public class QuakeConsole : MonoBehaviour {
+public class DropConsole : MonoBehaviour
+{
 
 	List<string> consoleLogHistory = new List<string> ();
 	List<string> consoleCommandHistory = new List<string> ();
 	Dictionary<string, ConsoleCommand> consoleCommandRepository = new Dictionary<string, ConsoleCommand> ();
 
-	[Header("Console Properties")]
-	[Range(0.0f, 1.0f)]
+	[Header ("Console Properties")]
+	[Range (0.0f, 1.0f)]
 	public float animationTime = 0.1f;
-	public bool clearOnHide = false; 
+	public bool clearOnHide = false;
 	public KeyCode consoleToggleKey = KeyCode.BackQuote;
 
-	[Header("UI Components")]
+	[Header ("UI Components")]
 	[SerializeField] RectTransform consolePanel;
-    [SerializeField] Text consoleLog;
-    [SerializeField] InputField consoleInput;
+	[SerializeField] Text consoleLog;
+	[SerializeField] InputField consoleInput;
 
 	float panelHeight;
 
-    bool isConsoleShown = false;
-    bool isTakingScreenshot = false;
+	bool isConsoleShown = false;
+	bool isTakingScreenshot = false;
 	bool canProcessBackgroundInput = true;
-    int currentCommandIndex = -1;
+	int currentCommandIndex = -1;
 
 	bool IsModifierKeyDown {
 		get { 
 			return Input.GetKeyDown (KeyCode.LeftShift)
-				|| Input.GetKeyDown (KeyCode.RightShift)
-				|| Input.GetKeyDown (KeyCode.LeftControl)
-				|| Input.GetKeyDown (KeyCode.RightControl)
-				|| Input.GetKeyDown (KeyCode.LeftAlt)
-				|| Input.GetKeyDown (KeyCode.RightAlt);
+			|| Input.GetKeyDown (KeyCode.RightShift)
+			|| Input.GetKeyDown (KeyCode.LeftControl)
+			|| Input.GetKeyDown (KeyCode.RightControl)
+			|| Input.GetKeyDown (KeyCode.LeftAlt)
+			|| Input.GetKeyDown (KeyCode.RightAlt);
 		}
 	}
 
 	#region Static methods
 
-	static void CheckForInstance() {
+	static void CheckForInstance () {
 
 		if (Instance == null) {
 			CreateConsoleObjects ();
@@ -76,10 +78,10 @@ public class QuakeConsole : MonoBehaviour {
 	}
 
 
-	static void CreateConsoleObjects() {
+	static void CreateConsoleObjects () {
 
 		var font = Resources.GetBuiltinResource<Font> ("Arial.ttf");
-		var consoleObject = new GameObject("Quake Console");
+		var consoleObject = new GameObject ("Quake Console");
 
 		var consoleCanvas = consoleObject.AddComponent<Canvas> ();
 		consoleCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -88,11 +90,11 @@ public class QuakeConsole : MonoBehaviour {
 		consoleObject.AddComponent<CanvasScaler> ();
 		consoleObject.AddComponent<GraphicRaycaster> ();
 
-		var console = consoleObject.AddComponent<QuakeConsole> ();
+		var console = consoleObject.AddComponent<DropConsole> ();
 
 		//Create the rest of the UI programatically
 		// Panel
-		var panelObject = new GameObject("Console Panel");
+		var panelObject = new GameObject ("Console Panel");
 		panelObject.transform.SetParent (consoleObject.transform, false);
 
 		var panel = panelObject.AddComponent<RectTransform> ();
@@ -185,7 +187,7 @@ public class QuakeConsole : MonoBehaviour {
 
 		var handleObject = new GameObject ("Handle");
 		var handleRect = handleObject.AddComponent<RectTransform> ();
-		handleObject.transform.SetParent(slidingAreaObject.transform, false);
+		handleObject.transform.SetParent (slidingAreaObject.transform, false);
 		vertScrollbar.targetGraphic = handleObject.AddComponent<Image> ();
 
 		handleRect.anchorMin = Vector2.zero;
@@ -215,7 +217,7 @@ public class QuakeConsole : MonoBehaviour {
 
 		var placeholderObject = new GameObject ("Placeholder");
 		var placeholderRect = placeholderObject.AddComponent<RectTransform> ();
-		placeholderObject.transform.SetParent(inputObject.transform, false);
+		placeholderObject.transform.SetParent (inputObject.transform, false);
 
 		placeholderRect.anchorMin = Vector2.zero;
 		placeholderRect.anchorMax = Vector2.one;
@@ -231,7 +233,7 @@ public class QuakeConsole : MonoBehaviour {
 
 		var inputTextObject = new GameObject ("Input Text");
 		var inputTextRect = inputTextObject.AddComponent<RectTransform> ();
-		inputTextObject.transform.SetParent(inputObject.transform, false);
+		inputTextObject.transform.SetParent (inputObject.transform, false);
 
 		inputTextRect.anchorMin = Vector2.zero;
 		inputTextRect.anchorMax = Vector2.one;
@@ -251,7 +253,7 @@ public class QuakeConsole : MonoBehaviour {
 		//consoleObject.hideFlags = HideFlags.HideAndDontSave;
 	}
 
-	public static void RegisterCommand(string command, ConsoleCommandCallback invoke, string helpText = "") {
+	public static void RegisterCommand (string command, ConsoleCommandCallback invoke, string helpText = "") {
 
 		CheckForInstance ();
 
@@ -259,23 +261,23 @@ public class QuakeConsole : MonoBehaviour {
 		Instance.RegisterCommand (newCommand);
 	}
 
-	public static void AddToLog(string format, params string[] args) {
+	public static void AddToLog (string format, params string[] args) {
 		
 		CheckForInstance ();
 
-		Instance.AddToLogAndUpdate(string.Format(format, args));
+		Instance.AddToLogAndUpdate (string.Format (format, args));
 	}
 
 	public static void AddToLog (string message) {
 
 		CheckForInstance ();
 
-		Instance.AddToLogAndUpdate(message);
+		Instance.AddToLogAndUpdate (message);
 	}
 
 	#endregion
 
-	static QuakeConsole Instance {
+	static DropConsole Instance {
 		get;
 		set;
 	}
@@ -295,12 +297,12 @@ public class QuakeConsole : MonoBehaviour {
 		DontDestroyOnLoad (this.gameObject);
 
 		RegisterCommand ("help", ListAllCommands, "Lists all registered console commands");
-        RegisterCommand ("clear", ClearLists, "[log|cmds|all] Clears console log, command history, or both");
+		RegisterCommand ("clear", ClearLists, "[log|cmds|all] Clears console log, command history, or both");
 		RegisterCommand ("screenshot", TakeScreenshot, "filename [supersize] Saves a screenshot. Supersize is a factor to increase the resolution");
 		RegisterCommand ("version", PrintVersion, "Prints the current application version");
 	}
 
-	void Start() {
+	void Start () {
 
 		if (consolePanel == null || consoleLog == null || consoleInput == null) {
 
@@ -328,15 +330,15 @@ public class QuakeConsole : MonoBehaviour {
 				if (Input.GetKeyUp (KeyCode.Tab)) {
 					Debug.Log ("Attempt auto complete");
 
-                } else if (Input.GetKeyDown (KeyCode.UpArrow) && !IsModifierKeyDown) {
+				} else if (Input.GetKeyDown (KeyCode.UpArrow) && !IsModifierKeyDown) {
 
-                    SkipToCommandHistoryIndex (Mathf.Min (currentCommandIndex + 1, consoleCommandHistory.Count - 1));
+					SkipToCommandHistoryIndex (Mathf.Min (currentCommandIndex + 1, consoleCommandHistory.Count - 1));
 
 				} else if (Input.GetKeyDown (KeyCode.DownArrow) && !IsModifierKeyDown) {
                     
-                    SkipToCommandHistoryIndex (Mathf.Max (currentCommandIndex - 1, -1));
+					SkipToCommandHistoryIndex (Mathf.Max (currentCommandIndex - 1, -1));
 				}
-            } else if (!isTakingScreenshot) {
+			} else if (!isTakingScreenshot) {
 				ToggleConsoleShown ();
 			}
 		} else if (Input.GetKeyUp (consoleToggleKey)) {
@@ -345,23 +347,23 @@ public class QuakeConsole : MonoBehaviour {
 			else
 				canProcessBackgroundInput = true;
 		}
-    }
+	}
 
 	#region Console visiblity methods
 
-    void ToggleConsoleShown(bool animate = true) {
+	void ToggleConsoleShown (bool animate = true) {
 		
 		isConsoleShown = !isConsoleShown;
 
 		StopAllCoroutines ();
-        StartCoroutine(AnimateConsoleShown (animate));
+		StartCoroutine (AnimateConsoleShown (animate));
 	}
 
-    IEnumerator AnimateConsoleShown(bool animate) {
+	IEnumerator AnimateConsoleShown (bool animate) {
 
 		Vector3 start = consolePanel.anchoredPosition;
-		Vector3 end = new Vector3(0, !isConsoleShown ? panelHeight : 0, 0);
-        float animTime = animate ? animationTime : 0f;
+		Vector3 end = new Vector3 (0, !isConsoleShown ? panelHeight : 0, 0);
+		float animTime = animate ? animationTime : 0f;
 
 		if (isConsoleShown) {
 			consoleInput.ActivateInputField ();
@@ -376,15 +378,15 @@ public class QuakeConsole : MonoBehaviour {
 			}
 		}
 
-        if (animTime > 0 && !start.Equals (end)) {
+		if (animTime > 0 && !start.Equals (end)) {
 
 			float moveDelta = Mathf.Abs (end.y - start.y);
-            float animProgress = animTime * (moveDelta / panelHeight);
+			float animProgress = animTime * (moveDelta / panelHeight);
 			float t = 0;
 
-            while (t <= animProgress) {
+			while (t <= animProgress) {
 
-                consolePanel.anchoredPosition = Vector3.Lerp (start, end, t / animProgress);
+				consolePanel.anchoredPosition = Vector3.Lerp (start, end, t / animProgress);
 				t += Time.fixedDeltaTime; // Goes from 0 to 1, incrementing by step each time
 
 				yield return new WaitForFixedUpdate ();
@@ -398,32 +400,29 @@ public class QuakeConsole : MonoBehaviour {
 
 	#region Text events
 
-	private char ValidateConsoleInput(string text, int charIndex, char addedChar)
-	{
+	private char ValidateConsoleInput (string text, int charIndex, char addedChar) {
 		char validChar = '\0';
 
 		if (addedChar == (char)consoleToggleKey) {
 			canProcessBackgroundInput = false;
 			ToggleConsoleShown ();
-		}
-		else if (addedChar == '\n') {
+		} else if (addedChar == '\n') {
             
-            text = text.Trim ();
+			text = text.Trim ();
 
-            if (string.IsNullOrEmpty (text) == false) {
+			if (string.IsNullOrEmpty (text) == false) {
 
-                // Store the command - even if it fails
-                consoleCommandHistory.Insert (0, text);
+				// Store the command - even if it fails
+				consoleCommandHistory.Insert (0, text);
 				currentCommandIndex = -1;
 
-                ParseCommand (text);
-            }
+				ParseCommand (text);
+			}
 
-            // Clear the console
-            consoleInput.text = string.Empty;
-            consoleInput.ActivateInputField ();
-		}
-		else {
+			// Clear the console
+			consoleInput.text = string.Empty;
+			consoleInput.ActivateInputField ();
+		} else {
 			validChar = addedChar;
 		}
 
@@ -432,161 +431,161 @@ public class QuakeConsole : MonoBehaviour {
 
 	#endregion
 
-    #region Core Methods
+	#region Core Methods
 
-    void SkipToCommandHistoryIndex(int index) {
+	void SkipToCommandHistoryIndex (int index) {
 
-        if (index >= 0 && index < consoleCommandHistory.Count) {
+		if (index >= 0 && index < consoleCommandHistory.Count) {
 
-            consoleInput.text = consoleCommandHistory [index];
-            consoleInput.MoveTextEnd (false);
-        } else {
+			consoleInput.text = consoleCommandHistory [index];
+			consoleInput.MoveTextEnd (false);
+		} else {
 
-            consoleInput.text = string.Empty;
-            index = -1;
-        }
+			consoleInput.text = string.Empty;
+			index = -1;
+		}
 
-        currentCommandIndex = index;
-    }
+		currentCommandIndex = index;
+	}
 
-    void AddToLogAndUpdate(string message) {
+	void AddToLogAndUpdate (string message) {
 
-        if (!string.IsNullOrEmpty (message)) {
-            consoleLogHistory.Add (message);
-        }
+		if (!string.IsNullOrEmpty (message)) {
+			consoleLogHistory.Add (message);
+		}
 
-        consoleLog.text = string.Join (Environment.NewLine, consoleLogHistory.ToArray ());
-    }
+		consoleLog.text = string.Join (Environment.NewLine, consoleLogHistory.ToArray ());
+	}
 
-    void RegisterCommand(ConsoleCommand newCommand) {
+	void RegisterCommand (ConsoleCommand newCommand) {
 
-        if (consoleCommandRepository.ContainsKey (newCommand.Command) == false) {
+		if (consoleCommandRepository.ContainsKey (newCommand.Command) == false) {
 
-            consoleCommandRepository.Add (newCommand.Command, newCommand);
-        }
-    }
+			consoleCommandRepository.Add (newCommand.Command, newCommand);
+		}
+	}
 
-    void ParseCommand(string text) {
+	void ParseCommand (string text) {
 
-        if (string.IsNullOrEmpty (text) == false) {
+		if (string.IsNullOrEmpty (text) == false) {
 
-            string command = string.Empty;
-            string[] args = {};
+			string command = string.Empty;
+			string[] args = { };
 
-            if (text.Contains (" ")) {
-                // Split the commands
-                var parts = new List<string> (text.Split (' '));
-                command = parts [0];
+			if (text.Contains (" ")) {
+				// Split the commands
+				var parts = new List<string> (text.Split (' '));
+				command = parts [0];
 
-                if (parts.Count > 1) {
-                    args = parts.GetRange (1, parts.Count - 1).ToArray ();
-                }
+				if (parts.Count > 1) {
+					args = parts.GetRange (1, parts.Count - 1).ToArray ();
+				}
 
-            } else {
-                command = text;
-            }
+			} else {
+				command = text;
+			}
 
-            if (!string.IsNullOrEmpty (command)) {
-                AddToLog (ExecuteCommand (command, args));
-            }
-        }
-    }
+			if (!string.IsNullOrEmpty (command)) {
+				AddToLog (ExecuteCommand (command, args));
+			}
+		}
+	}
 
-    string ExecuteCommand(string command, params string[] args) {
+	string ExecuteCommand (string command, params string[] args) {
 
-        if (consoleCommandRepository.ContainsKey (command)) {
+		if (consoleCommandRepository.ContainsKey (command)) {
 
-            ConsoleCommand cmd = consoleCommandRepository [command];
+			ConsoleCommand cmd = consoleCommandRepository [command];
 
-            return cmd.Invoke (args);
-        }
+			return cmd.Invoke (args);
+		}
 
-        return "Error executing command '" + command + "'";
-    }
+		return "Error executing command '" + command + "'";
+	}
 
-    #endregion
+	#endregion
 
 	#region Core Command Methods
 
-	string ListAllCommands(params string[] args) {
+	string ListAllCommands (params string[] args) {
 
-        StringBuilder commandList = new StringBuilder("\nCommands Listing\n----------------\n\n");
+		StringBuilder commandList = new StringBuilder ("\nCommands Listing\n----------------\n\n");
 
-        foreach (string key in consoleCommandRepository.Keys) {
-            var command = consoleCommandRepository [key];
+		foreach (string key in consoleCommandRepository.Keys) {
+			var command = consoleCommandRepository [key];
 
-            commandList.AppendFormat ("<b>{0}</b> - {1}\n", command.Command, command.HelpText);
-        }
+			commandList.AppendFormat ("<b>{0}</b> - {1}\n", command.Command, command.HelpText);
+		}
 
 		return commandList.ToString ();
-    }
+	}
 
-    string ClearLists(params string[] args) {
+	string ClearLists (params string[] args) {
 
-        var logToClear = "all";
-        var returnMsg = string.Empty;
+		var logToClear = "all";
+		var returnMsg = string.Empty;
 
-        if (args.Length > 0) {
-            logToClear = args [0];
-        }
+		if (args.Length > 0) {
+			logToClear = args [0];
+		}
 
-        if (logToClear.Equals ("all")) {
-            consoleLogHistory.Clear ();
-            consoleCommandHistory.Clear ();
+		if (logToClear.Equals ("all")) {
+			consoleLogHistory.Clear ();
+			consoleCommandHistory.Clear ();
 
-        } else if (logToClear.Equals ("log")) {
-            consoleLogHistory.Clear ();
+		} else if (logToClear.Equals ("log")) {
+			consoleLogHistory.Clear ();
 
-        } else if (logToClear.Equals ("cmd")) {
-            consoleCommandHistory.Clear ();
+		} else if (logToClear.Equals ("cmd")) {
+			consoleCommandHistory.Clear ();
 
-            returnMsg = "Command history cleared";
+			returnMsg = "Command history cleared";
 
-        } else {
-            returnMsg = "Unknown argument '" + logToClear + "'";
-        }
+		} else {
+			returnMsg = "Unknown argument '" + logToClear + "'";
+		}
 
-        return returnMsg;
-    }
+		return returnMsg;
+	}
 
-    string PrintVersion(params string[] args) {
+	string PrintVersion (params string[] args) {
 
-        return string.Format ("{0} v{1}", Application.productName, Application.version);
-    }
+		return string.Format ("{0} v{1}", Application.productName, Application.version);
+	}
 
-    string TakeScreenshot(params string[] args) {
+	string TakeScreenshot (params string[] args) {
 
-		string filename = "Screenshot " + DateTime.Now.ToString("yy-MM-dd hh-mm-ss");
+		string filename = "Screenshot " + DateTime.Now.ToString ("yy-MM-dd hh-mm-ss");
 		int superSize = 0;
 
 		if (args.Length > 0) {
 			
 			filename = args [0];
 
-			if (args.Length > 1 && !int.TryParse(args[1], out superSize)) {
+			if (args.Length > 1 && !int.TryParse (args [1], out superSize)) {
 				return "Supersize parameter must be a number!";
 			}
 		}
 
 		filename += ".png";
 
-        StartCoroutine (CaptureScreenshot (filename, superSize));
+		StartCoroutine (CaptureScreenshot (filename, superSize));
 
 		return "Screenshot saved as " + Application.persistentDataPath + "/" + filename;
 	}
 
-    IEnumerator CaptureScreenshot(string filename, int superSize) {
+	IEnumerator CaptureScreenshot (string filename, int superSize) {
 
-        consolePanel.anchoredPosition = new Vector2 (0, panelHeight);
+		consolePanel.anchoredPosition = new Vector2 (0, panelHeight);
 
-        yield return new WaitForEndOfFrame ();
+		yield return new WaitForEndOfFrame ();
 
-        Application.CaptureScreenshot (filename, superSize);
+		Application.CaptureScreenshot (filename, superSize);
 
-        yield return null;
+		yield return null;
 
-        consolePanel.anchoredPosition = Vector2.zero;
-    }
+		consolePanel.anchoredPosition = Vector2.zero;
+	}
 
 	#endregion
 }
