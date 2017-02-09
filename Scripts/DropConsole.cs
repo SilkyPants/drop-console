@@ -60,6 +60,8 @@ public class DropConsole : MonoBehaviour
 	bool canProcessBackgroundInput = true;
 	int currentCommandIndex = -1;
 
+	Coroutine animateConsoleCoroutine;
+
 	bool IsModifierKeyDown {
 		get { 
 			return Input.GetKeyDown (KeyCode.LeftShift)
@@ -105,9 +107,9 @@ public class DropConsole : MonoBehaviour
 
 		panel.anchorMin = new Vector2 (0f, 1f);
 		panel.anchorMax = Vector2.one;
-		panel.pivot = new Vector2 (0.5f, 1f);
+		panel.pivot = new Vector2 (0.5f, 0f);
 		panel.sizeDelta = new Vector2 (0f, 400f);
-		panel.anchoredPosition = new Vector2 (0f, panel.sizeDelta.y);
+		panel.anchoredPosition = Vector2.zero;
 
 		var panelImage = panelObject.AddComponent<Image> ();
 		panelImage.color = new Color (0f, 0f, 0f, 0.5f);
@@ -352,7 +354,7 @@ public class DropConsole : MonoBehaviour
 
 		panelHeight = consolePanel.rect.height;
 
-		consolePanel.anchoredPosition = new Vector2 (0, panelHeight);
+		consolePanel.anchoredPosition = Vector2.zero;
 
 		consoleInput.onValidateInput += ValidateConsoleInput;
 
@@ -392,14 +394,14 @@ public class DropConsole : MonoBehaviour
 		
 		isConsoleShown = !isConsoleShown;
 
-		StopAllCoroutines ();
-		StartCoroutine (AnimateConsoleShown (animate));
+		StopCoroutine (animateConsoleCoroutine);
+		animateConsoleCoroutine = StartCoroutine (AnimateConsoleShown (animate));
 	}
 
 	IEnumerator AnimateConsoleShown (bool animate) {
 
 		Vector3 start = consolePanel.anchoredPosition;
-		Vector3 end = new Vector3 (0, !isConsoleShown ? panelHeight : 0, 0);
+		Vector3 end = new Vector3 (0, !isConsoleShown ? 0 : -panelHeight, 0);
 		float animTime = animate ? animationTime : 0f;
 
 		if (isConsoleShown) {
@@ -622,7 +624,7 @@ public class DropConsole : MonoBehaviour
 
 	IEnumerator CaptureScreenshot (string filename, int superSize) {
 
-		consolePanel.anchoredPosition = new Vector2 (0, panelHeight);
+		consolePanel.anchoredPosition = Vector2.zero;
 
 		yield return new WaitForEndOfFrame ();
 
@@ -630,7 +632,7 @@ public class DropConsole : MonoBehaviour
 
 		yield return null;
 
-		consolePanel.anchoredPosition = Vector2.zero;
+		consolePanel.anchoredPosition = new Vector2 (0, -panelHeight);
 	}
 
 	#endregion
