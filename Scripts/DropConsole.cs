@@ -1,4 +1,7 @@
-﻿using UnityEngine;
+﻿
+#define USE_CLEAN_LOGGER
+
+using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
 using System.Collections.Generic;
@@ -81,11 +84,11 @@ public class DropConsole : MonoBehaviour
 	static void CreateConsoleObjects () {
 
 		var font = Resources.GetBuiltinResource<Font> ("Arial.ttf");
-		var consoleObject = new GameObject ("Quake Console");
+		var consoleObject = new GameObject ("Drop Down Console");
 
 		var consoleCanvas = consoleObject.AddComponent<Canvas> ();
 		consoleCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-		consoleCanvas.sortingOrder = 200;
+		consoleCanvas.sortingOrder = int.MaxValue;
 
 		consoleObject.AddComponent<CanvasScaler> ();
 		consoleObject.AddComponent<GraphicRaycaster> ();
@@ -298,8 +301,42 @@ public class DropConsole : MonoBehaviour
 
 		RegisterCommand ("help", ListAllCommands, "Lists all registered console commands");
 		RegisterCommand ("clear", ClearLists, "[log|cmds|all] Clears console log, command history, or both");
+		RegisterCommand ("echo", EchoString, "Echoes a string to the console");
 		RegisterCommand ("screenshot", TakeScreenshot, "filename [supersize] Saves a screenshot. Supersize is a factor to increase the resolution");
 		RegisterCommand ("version", PrintVersion, "Prints the current application version");
+
+		#if USE_CLEAN_LOGGER
+		CleanLogger.OnLoggedEvent += delegate(CleanLogger.LogType logType, string message, string tag) {
+
+			string echo = message;
+
+			if (string.IsNullOrEmpty (tag) == false) {
+				echo = "<b>[" + tag + "]</b> " + echo;
+			}
+
+			switch (logType) {
+
+			case CleanLogger.LogType.Error:
+			case CleanLogger.LogType.Exception:
+			case CleanLogger.LogType.Assert:
+
+				echo = "<color=#bb0000ff>" + echo + "</color>";
+
+				break;
+
+			case CleanLogger.LogType.Warning:
+
+				echo = "<color=#ffa500ff>" + echo + "</color>";
+
+				break;
+
+			default:
+				break;
+			}
+
+			ParseCommand ("echo " + echo);
+		};
+		#endif
 	}
 
 	void Start () {
@@ -324,7 +361,7 @@ public class DropConsole : MonoBehaviour
 
 	void Update () {
 	
-		if (isConsoleShown) {
+		if (consoleInput.isActiveAndEnabled && isConsoleShown) {
 			if (consoleInput.isFocused) {
 				
 				if (Input.GetKeyUp (KeyCode.Tab)) {
@@ -551,6 +588,15 @@ public class DropConsole : MonoBehaviour
 	string PrintVersion (params string[] args) {
 
 		return string.Format ("{0} v{1}", Application.productName, Application.version);
+	}
+
+	string EchoString (params string[] args) {
+
+		if (args.Length > 0) {			
+			return string.Join (" ", args);
+		}
+
+		return string.Empty;
 	}
 
 	string TakeScreenshot (params string[] args) {

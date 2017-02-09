@@ -8,6 +8,28 @@ public class TestScript : MonoBehaviour
 	void Start () {
 
 		DropConsole.RegisterCommand ("floorCol", ChangeFloorColor, "[r g b] Change the floor color as integers from 0 - 255");
+
+		DropConsole.RegisterCommand ("testError", LogError, "Logs error to console");
+		DropConsole.RegisterCommand ("testWarn", LogWarning, "Logs warning to console");
+		DropConsole.RegisterCommand ("testInfo", LogInfo, "Logs info to console");
+	}
+
+	string LogError (params string[] args) {
+		CleanLogger.LogError ("TEST", string.Join (" ", args));
+
+		return "OK";
+	}
+
+	string LogWarning (params string[] args) {
+		CleanLogger.LogWarning ("TEST", string.Join (" ", args));
+
+		return "OK";
+	}
+
+	string LogInfo (params string[] args) {
+		CleanLogger.Log ("TEST", string.Join (" ", args));
+
+		return "OK";
 	}
 
 	string ChangeFloorColor (params string[] args) {
