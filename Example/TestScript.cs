@@ -15,19 +15,19 @@ public class TestScript : MonoBehaviour
 	}
 
 	string LogError (params string[] args) {
-		CleanLogger.LogError ("TEST", string.Join (" ", args));
+		CleanLog.LogError (string.Join (" ", args));
 
 		return "OK";
 	}
 
 	string LogWarning (params string[] args) {
-		CleanLogger.LogWarning ("TEST", string.Join (" ", args));
+		CleanLog.LogWarning (string.Join (" ", args));
 
 		return "OK";
 	}
 
 	string LogInfo (params string[] args) {
-		CleanLogger.Log ("TEST", string.Join (" ", args));
+		CleanLog.Log (string.Join (" ", args));
 
 		return "OK";
 	}
