@@ -308,15 +308,15 @@ public class DropConsole : MonoBehaviour
 		RegisterCommand ("version", PrintVersion, "Prints the current application version");
 
 		#if USE_CLEAN_LOGGER
-		CleanLog.OnLoggedEvent += delegate(CleanLog.LogType logType, string message, Enum tag) {
+		CleanLog.OnLoggedEvent += delegate(LogEntry logEntry) {
 
-			string echo = message;
+			string echo = logEntry.Message;
 
 //			if (string.IsNullOrEmpty (tag) == false) {
 //				echo = "<b>[" + tag + "]</b> " + echo;
 //			}
 
-			switch (logType) {
+			switch (logEntry.LogType) {
 
 			case CleanLog.LogType.Error:
 			case CleanLog.LogType.Exception:
