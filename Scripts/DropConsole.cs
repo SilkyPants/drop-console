@@ -60,7 +60,6 @@ public class DropConsole : MonoBehaviour
     float panelHeight;
 
     public bool isConsoleShown = false;
-    bool isTakingScreenshot = false;
     bool canProcessBackgroundInput = true;
     int currentCommandIndex = -1;
 
