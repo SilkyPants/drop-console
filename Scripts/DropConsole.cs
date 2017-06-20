@@ -97,7 +97,7 @@ public class DropConsole : MonoBehaviour
 
         var consoleCanvas = consoleObject.AddComponent<Canvas>();
         consoleCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        consoleCanvas.sortingOrder = int.MaxValue;
+        consoleCanvas.sortingOrder = 32767;
 
         consoleObject.AddComponent<CanvasScaler>();
         consoleObject.AddComponent<GraphicRaycaster>();
@@ -325,6 +325,7 @@ public class DropConsole : MonoBehaviour
         RegisterCommand("help", ListAllCommands, "Lists all registered console commands");
         RegisterCommand("clear", ClearLists, "[log|cmds|all] Clears console log, command history, or both");
         RegisterCommand("echo", EchoString, "Echoes a string to the console");
+        RegisterCommand("loadScene", LoadScene, "Loads a scene added to the project via Build Settings");
         RegisterCommand("screenshot", TakeScreenshot, "filename [supersize] Saves a screenshot. Supersize is a factor to increase the resolution");
         RegisterCommand("version", PrintVersion, "Prints the current application version");
 
@@ -626,7 +627,6 @@ public class DropConsole : MonoBehaviour
 
     string PrintVersion(params string[] args)
     {
-
         return string.Format("{0} v{1}", Application.productName, Application.version);
     }
 
@@ -638,6 +638,19 @@ public class DropConsole : MonoBehaviour
         }
 
         return string.Empty;
+    }
+
+    string LoadScene(params string[] args)
+    {
+        if (args.Length > 0) {
+
+            var sceneName = args[0];
+            UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName, UnityEngine.SceneManagement.LoadSceneMode.Single);
+
+            return string.Format("Scene '{0}' loaded.", sceneName);
+        }
+
+        return "Need to give a scene name to load!";
     }
 
     string TakeScreenshot(params string[] args)
