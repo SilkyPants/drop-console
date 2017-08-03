@@ -682,7 +682,7 @@ public class DropConsole : MonoBehaviour
 
         yield return new WaitForEndOfFrame();
 
-        Application.CaptureScreenshot(filename, superSize);
+        ScreenCapture.CaptureScreenshot(filename, superSize);
 
         yield return null;
 
