@@ -600,13 +600,17 @@ public class DropConsole : MonoBehaviour
 
     string ListAllCommands(params string[] args)
     {
+        var longestCommand = consoleCommandRepository.Values.Max(x => x.Command.Length);
+        var maxNumTabs = Mathf.FloorToInt(longestCommand / 4f);
+
 
         StringBuilder commandList = new StringBuilder("\nCommands Listing\n----------------\n\n");
 
         foreach (string key in consoleCommandRepository.Keys) {
             var command = consoleCommandRepository[key];
+            var tabsCount = (maxNumTabs - Mathf.FloorToInt(command.Command.Length / 4f)) + 1;
 
-            commandList.AppendFormat("<b>{0}</b> - {1}\n", command.Command, command.HelpText);
+            commandList.AppendFormat("<b>{0}</b>{2}- {1}\n", command.Command, command.HelpText, new String('\t', tabsCount));
         }
 
         return commandList.ToString();
