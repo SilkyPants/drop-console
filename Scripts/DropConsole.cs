@@ -1,5 +1,5 @@
 ﻿
-//#define USE_CLEAN_LOGGER
+#define USE_CLEAN_LOGGER
 
 using UnityEngine;
 using System.Collections;
@@ -7,6 +7,7 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using System;
 using System.Text;
+using System.Linq;
 
 public delegate string ConsoleCommandCallback(params string[] args);
 
@@ -48,6 +49,8 @@ public class DropConsole : MonoBehaviour
 
     [Header("Console Properties")]
     [Range(0.0f, 1.0f)]
+    [SerializeField] Font consoleFont;
+    [SerializeField] int consoleFontSize = 18;
     public float animationTime = 0.1f;
     public bool clearOnHide = false;
     public KeyCode consoleToggleKey = KeyCode.BackQuote;
@@ -238,7 +241,7 @@ public class DropConsole : MonoBehaviour
 
         var placeholderText = placeholderObject.AddComponent<Text>();
         placeholderText.font = font;
-        placeholderText.fontStyle = FontStyle.Italic;
+        placeholderText.fontStyle = FontStyle.Normal;
         placeholderText.text = "Enter command or type <b>help</b> for a list of available commands";
         placeholderText.alignment = TextAnchor.MiddleLeft;
         placeholderText.color = new Color(1f, 1f, 1f, 0.5f);
@@ -265,8 +268,6 @@ public class DropConsole : MonoBehaviour
         //consoleObject.hideFlags = HideFlags.HideAndDontSave;
 
         if (UnityEngine.EventSystems.EventSystem.current == null) {
-            Debug.Log("DropDownConsole - No event system found, Creating one...");
-
             var eventSystem = new GameObject("Event System");
             eventSystem.transform.SetParent(consoleObject.transform);
             eventSystem.AddComponent<UnityEngine.EventSystems.EventSystem>();
@@ -316,7 +317,7 @@ public class DropConsole : MonoBehaviour
     {
 
         if (Instance != null) {
-            Debug.LogError("Cannot have multiple instances of Quake Console.");
+            CleanLog.LogError("Cannot have multiple instances of Drop Console.");
 
             this.enabled = false;
 
@@ -373,7 +374,7 @@ public class DropConsole : MonoBehaviour
 
         if (consolePanel == null || consoleLog == null || consoleInput == null) {
 
-            Debug.LogError("UI Components are not set up!");
+            CleanLog.LogError("UI Components are not set up!");
 
             this.enabled = false;
 
@@ -390,6 +391,16 @@ public class DropConsole : MonoBehaviour
                 if (string.IsNullOrEmpty(text)) ToggleConsoleShown();
             });
 
+        if (consoleFont != null) {
+            consoleInput.textComponent.font = consoleFont;
+            consoleInput.placeholder.GetComponent<Text>().font = consoleFont;
+            consoleLog.font = consoleFont;
+
+            consoleInput.textComponent.fontSize = consoleFontSize;
+            consoleInput.placeholder.GetComponent<Text>().fontSize = consoleFontSize;
+            consoleLog.fontSize = consoleFontSize;
+        }
+
         ParseCommand("version");
     }
 
@@ -400,7 +411,7 @@ public class DropConsole : MonoBehaviour
             if (consoleInput.isFocused) {
 				
                 if (Input.GetKeyUp(KeyCode.Tab)) {
-                    Debug.Log("Attempt auto complete");
+                    CleanLog.Log("Attempt auto complete");
 
                 } else if (Input.GetKeyDown(KeyCode.UpArrow) && !IsModifierKeyDown) {
 
@@ -589,13 +600,17 @@ public class DropConsole : MonoBehaviour
 
     string ListAllCommands(params string[] args)
     {
+        var longestCommand = consoleCommandRepository.Values.Max(x => x.Command.Length);
+        var maxNumTabs = Mathf.FloorToInt(longestCommand / 4f);
+
 
         StringBuilder commandList = new StringBuilder("\nCommands Listing\n----------------\n\n");
 
         foreach (string key in consoleCommandRepository.Keys) {
             var command = consoleCommandRepository[key];
+            var tabsCount = (maxNumTabs - Mathf.FloorToInt(command.Command.Length / 4f)) + 1;
 
-            commandList.AppendFormat("<b>{0}</b> - {1}\n", command.Command, command.HelpText);
+            commandList.AppendFormat("<b>{0}</b>{2}- {1}\n", command.Command, command.HelpText, new String('\t', tabsCount));
         }
 
         return commandList.ToString();
