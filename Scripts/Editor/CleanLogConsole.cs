@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -111,19 +113,19 @@ public class CleanLogConsole : EditorWindow
     {
         CleanLog.OnLoggedEvent += OnLoggedEvent;
 
-        EditorApplication.playmodeStateChanged += OnPlaymodeStateChanged;
+        EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
     }
 
     void RemoveEvents()
     {
         CleanLog.OnLoggedEvent -= OnLoggedEvent;
 
-        EditorApplication.playmodeStateChanged -= OnPlaymodeStateChanged;
+        EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
     }
 
-    void OnPlaymodeStateChanged()
+    void OnPlayModeStateChanged(PlayModeStateChange state)
     {
-        if (clearOnPlay && EditorApplication.isPlayingOrWillChangePlaymode && !EditorApplication.isPlaying)
+        if (clearOnPlay && state == PlayModeStateChange.EnteredPlayMode)
         {
             ClearLog();
             Repaint();
@@ -327,6 +329,4 @@ public class CleanLogConsole : EditorWindow
     }
 }
 
-
-
-
+#endif
