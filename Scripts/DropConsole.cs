@@ -1,5 +1,5 @@
 ﻿
-//#define USE_CLEAN_LOGGER
+#define USE_CLEAN_LOGGER
 
 using UnityEngine;
 using System.Collections;
@@ -265,8 +265,6 @@ public class DropConsole : MonoBehaviour
         //consoleObject.hideFlags = HideFlags.HideAndDontSave;
 
         if (UnityEngine.EventSystems.EventSystem.current == null) {
-            Debug.Log("DropDownConsole - No event system found, Creating one...");
-
             var eventSystem = new GameObject("Event System");
             eventSystem.transform.SetParent(consoleObject.transform);
             eventSystem.AddComponent<UnityEngine.EventSystems.EventSystem>();
@@ -316,7 +314,7 @@ public class DropConsole : MonoBehaviour
     {
 
         if (Instance != null) {
-            Debug.LogError("Cannot have multiple instances of Quake Console.");
+            CleanLog.LogError("Cannot have multiple instances of Drop Console.");
 
             this.enabled = false;
 
@@ -373,7 +371,7 @@ public class DropConsole : MonoBehaviour
 
         if (consolePanel == null || consoleLog == null || consoleInput == null) {
 
-            Debug.LogError("UI Components are not set up!");
+            CleanLog.LogError("UI Components are not set up!");
 
             this.enabled = false;
 
@@ -400,7 +398,7 @@ public class DropConsole : MonoBehaviour
             if (consoleInput.isFocused) {
 				
                 if (Input.GetKeyUp(KeyCode.Tab)) {
-                    Debug.Log("Attempt auto complete");
+                    CleanLog.Log("Attempt auto complete");
 
                 } else if (Input.GetKeyDown(KeyCode.UpArrow) && !IsModifierKeyDown) {
 
