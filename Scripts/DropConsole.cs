@@ -7,6 +7,7 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using System;
 using System.Text;
+using System.Linq;
 
 public delegate string ConsoleCommandCallback(params string[] args);
 
@@ -48,6 +49,8 @@ public class DropConsole : MonoBehaviour
 
     [Header("Console Properties")]
     [Range(0.0f, 1.0f)]
+    [SerializeField] Font consoleFont;
+    [SerializeField] int consoleFontSize = 18;
     public float animationTime = 0.1f;
     public bool clearOnHide = false;
     public KeyCode consoleToggleKey = KeyCode.BackQuote;
@@ -238,7 +241,7 @@ public class DropConsole : MonoBehaviour
 
         var placeholderText = placeholderObject.AddComponent<Text>();
         placeholderText.font = font;
-        placeholderText.fontStyle = FontStyle.Italic;
+        placeholderText.fontStyle = FontStyle.Normal;
         placeholderText.text = "Enter command or type <b>help</b> for a list of available commands";
         placeholderText.alignment = TextAnchor.MiddleLeft;
         placeholderText.color = new Color(1f, 1f, 1f, 0.5f);
@@ -387,6 +390,16 @@ public class DropConsole : MonoBehaviour
             {
                 if (string.IsNullOrEmpty(text)) ToggleConsoleShown();
             });
+
+        if (consoleFont != null) {
+            consoleInput.textComponent.font = consoleFont;
+            consoleInput.placeholder.GetComponent<Text>().font = consoleFont;
+            consoleLog.font = consoleFont;
+
+            consoleInput.textComponent.fontSize = consoleFontSize;
+            consoleInput.placeholder.GetComponent<Text>().fontSize = consoleFontSize;
+            consoleLog.fontSize = consoleFontSize;
+        }
 
         ParseCommand("version");
     }
