@@ -265,7 +265,12 @@ public class DropConsole : MonoBehaviour
         //consoleObject.hideFlags = HideFlags.HideAndDontSave;
 
         if (UnityEngine.EventSystems.EventSystem.current == null) {
-            Debug.LogError("DropDownConsole - No event system!");
+            Debug.Log("DropDownConsole - No event system found, Creating one...");
+
+            var eventSystem = new GameObject("Event System");
+            eventSystem.transform.SetParent(consoleObject.transform);
+            eventSystem.AddComponent<UnityEngine.EventSystems.EventSystem>();
+            eventSystem.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
         }
     }
 
