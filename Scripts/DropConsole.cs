@@ -1,7 +1,4 @@
-﻿
-#define USE_CLEAN_LOGGER
-
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
 using System.Collections.Generic;
@@ -57,6 +54,8 @@ public class DropConsole : MonoBehaviour
     [Range(0.0f, 1.0f)]
     [SerializeField] Font consoleFont = null;
     [SerializeField] int consoleFontSize = 18;
+    [SerializeField] Sprite errorSprite;
+    [SerializeField] Sprite warningSprite;
     public float animationTime = 0.1f;
     public bool clearOnHide = false;
     public KeyCode consoleToggleKey = KeyCode.BackQuote;
@@ -67,6 +66,10 @@ public class DropConsole : MonoBehaviour
     [SerializeField] InputField consoleInput;
     [SerializeField] Color32 errorColor = new Color(0.9f, 0f, 0f);
     [SerializeField] Color32 warningColor = new Color(1f, 0.9f, 0f);
+
+    [SerializeField] CanvasGroup indicatorsGroup = null;
+    [SerializeField] Image warningIndicator = null;
+    [SerializeField] Image errorIndicator = null;
 
     float panelHeight;
 
@@ -116,6 +119,45 @@ public class DropConsole : MonoBehaviour
         var console = consoleObject.AddComponent<DropConsole>();
 
         //Create the rest of the UI programatically
+        // Indicators
+        var indicatorsObject = new GameObject("Indicators");
+        indicatorsObject.transform.SetParent(consoleObject.transform, false);
+
+        var indicators = indicatorsObject.AddComponent<RectTransform>();
+
+        indicators.anchorMin = new Vector2(0f, 1f);
+        indicators.anchorMax = Vector2.one;
+        indicators.pivot = new Vector2(0.5f, 1f);
+        indicators.sizeDelta = new Vector2(0f, 64f);
+        indicators.anchoredPosition = Vector2.zero;
+
+        var indicatorsLayout = indicatorsObject.AddComponent<HorizontalLayoutGroup>();
+        indicatorsLayout.padding = new RectOffset(0, 0, 0, 0);
+        indicatorsLayout.spacing = 4;
+        indicatorsLayout.childAlignment = TextAnchor.MiddleRight;
+        indicatorsLayout.childControlWidth = true;
+        indicatorsLayout.childControlHeight = true;
+        indicatorsLayout.childForceExpandWidth = true;
+        indicatorsLayout.childForceExpandHeight = true;
+
+        console.indicatorsGroup = indicatorsObject.AddComponent<CanvasGroup>();
+        console.indicatorsGroup.interactable = false;
+        console.indicatorsGroup.blocksRaycasts = false;
+
+        var indicatorSpacer = new GameObject("Spacer");
+        indicatorSpacer.transform.SetParent(indicatorsObject.transform, false);
+        indicatorSpacer.AddComponent<LayoutElement>().flexibleWidth = float.MaxValue;
+
+        var warningIndicator = new GameObject("Warning Indicator");
+        warningIndicator.transform.SetParent(indicatorsObject.transform, false);
+        warningIndicator.AddComponent<LayoutElement>().preferredWidth = 64f;
+        console.warningIndicator = warningIndicator.AddComponent<Image>();
+
+        var errorIndicator = new GameObject("Error Indicator");
+        errorIndicator.transform.SetParent(indicatorsObject.transform, false);
+        errorIndicator.AddComponent<LayoutElement>().preferredWidth = 64f;
+        console.errorIndicator = errorIndicator.AddComponent<Image>();
+
         // Panel
         var panelObject = new GameObject("Console Panel");
         panelObject.transform.SetParent(consoleObject.transform, false);
@@ -336,37 +378,34 @@ public class DropConsole : MonoBehaviour
         RegisterCommand("screenshot", TakeScreenshot, "filename [supersize] Saves a screenshot. Supersize is a factor to increase the resolution");
         RegisterCommand("version", PrintVersion, "Prints the current application version");
 
-        #if USE_CLEAN_LOGGER
 		CleanLog.OnLoggedEvent += delegate(LogEntry logEntry) {
-
-			string echo = logEntry.Message;
+            string echo = logEntry.Message;
 
 //			if (string.IsNullOrEmpty (tag) == false) {
 //				echo = "<b>[" + tag + "]</b> " + echo;
 //			}
 
 			switch (logEntry.LogType) {
+                case CleanLog.LogType.Error:
+    			case CleanLog.LogType.Exception:
+    			case CleanLog.LogType.Assert:
+                    echo = "<color=#" + errorColor.ToHex() + ">" + echo + "</color>";
+                    errorIndicator.gameObject.SetActive(true);
+                    break;
 
-			case CleanLog.LogType.Error:
-			case CleanLog.LogType.Exception:
-			case CleanLog.LogType.Assert:
-                echo = "<color=#" + errorColor.ToHex() + ">" + echo + "</color>";
+    			case CleanLog.LogType.Warning:
 
-				break;
+                    echo = "<color=#" + warningColor.ToHex() + ">" + echo + "</color>";
+                    warningIndicator.gameObject.SetActive(true);
 
-			case CleanLog.LogType.Warning:
+    				break;
 
-                echo = "<color=#" + warningColor.ToHex() + ">" + echo + "</color>";
-
-				break;
-
-			default:
-				break;
+    			default:
+    				break;
 			}
 
 			ParseCommand ("echo " + echo);
 		};
-        #endif
 
         Application.logMessageReceived += delegate (string logString, string stackTrace, UnityEngine.LogType type) {
             string echo = logString;
@@ -379,12 +418,14 @@ public class DropConsole : MonoBehaviour
                 case UnityEngine.LogType.Assert:
 
                     echo = "<color=#" + errorColor.ToHex() + ">" + echo + "</color>";
+                    errorIndicator.gameObject.SetActive(true);
 
                     break;
 
                 case UnityEngine.LogType.Warning:
 
                     echo = "<color=#" + warningColor.ToHex() + ">" + echo + "</color>";
+                    warningIndicator.gameObject.SetActive(true);
 
                     break;
 
@@ -425,6 +466,17 @@ public class DropConsole : MonoBehaviour
             consoleInput.textComponent.fontSize = consoleFontSize;
             consoleInput.placeholder.GetComponent<Text>().fontSize = consoleFontSize;
         }
+
+        if (errorSprite != null && warningSprite != null) {
+            errorIndicator.sprite = errorSprite;
+            errorIndicator.color = errorColor;
+
+            warningIndicator.sprite = warningSprite;
+            warningIndicator.color = warningColor;
+        }
+
+        warningIndicator.gameObject.SetActive(false);
+        errorIndicator.gameObject.SetActive(false);
 
         ParseCommand("version");
     }
@@ -470,9 +522,12 @@ public class DropConsole : MonoBehaviour
 
     IEnumerator AnimateConsoleShown(bool animate)
     {
-
         Vector3 start = consolePanel.anchoredPosition;
         Vector3 end = new Vector3(0, !isConsoleShown ? 0 : -panelHeight, 0);
+
+        float indicatorStart = indicatorsGroup.alpha;
+        float indicatorEnd = !isConsoleShown ? 1f : 0f;
+
         float animTime = animate ? animationTime : 0f;
 
         if (isConsoleShown) {
@@ -497,6 +552,7 @@ public class DropConsole : MonoBehaviour
             while (t <= animProgress) {
 
                 consolePanel.anchoredPosition = Vector3.Lerp(start, end, t / animProgress);
+                indicatorsGroup.alpha = Mathf.Lerp(indicatorStart, indicatorEnd, t / animProgress);
                 t += Time.fixedDeltaTime; // Goes from 0 to 1, incrementing by step each time
 
                 yield return new WaitForFixedUpdate();
@@ -504,6 +560,13 @@ public class DropConsole : MonoBehaviour
         }
 
         consolePanel.anchoredPosition = end;
+        indicatorsGroup.alpha = indicatorEnd;
+
+        if (isConsoleShown)
+        {
+            errorIndicator.gameObject.SetActive(false);
+            warningIndicator.gameObject.SetActive(false);
+        }
     }
 
     #endregion
