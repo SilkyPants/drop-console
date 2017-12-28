@@ -172,7 +172,7 @@ public class DropConsole : MonoBehaviour
         panel.anchoredPosition = Vector2.zero;
 
         var panelImage = panelObject.AddComponent<Image>();
-        panelImage.color = new Color(0f, 0f, 0f, 0.5f);
+        panelImage.color = new Color(0f, 0f, 0f, 0.8f);
 
         panelObject.AddComponent<VerticalLayoutGroup>();
 
