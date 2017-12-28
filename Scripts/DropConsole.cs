@@ -367,6 +367,33 @@ public class DropConsole : MonoBehaviour
 			ParseCommand ("echo " + echo);
 		};
         #endif
+
+        Application.logMessageReceived += delegate (string logString, string stackTrace, UnityEngine.LogType type) {
+            string echo = logString;
+
+            switch (type)
+            {
+
+                case UnityEngine.LogType.Error:
+                case UnityEngine.LogType.Exception:
+                case UnityEngine.LogType.Assert:
+
+                    echo = "<color=#" + errorColor.ToHex() + ">" + echo + "</color>";
+
+                    break;
+
+                case UnityEngine.LogType.Warning:
+
+                    echo = "<color=#" + warningColor.ToHex() + ">" + echo + "</color>";
+
+                    break;
+
+                default:
+                    break;
+            }
+
+            ParseCommand("echo " + echo);
+        };
     }
 
     void Start()
