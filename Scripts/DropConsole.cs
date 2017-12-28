@@ -13,7 +13,7 @@ public delegate string ConsoleCommandCallback(params string[] args);
 
 public static class Extensions {
 
-    public static string ToHex(this Color color) {
+    public static string ToHex(this Color32 color) {
         string hex = color.r.ToString("X2") + color.g.ToString("X2") + color.b.ToString("X2");
         return hex;
     }
@@ -65,8 +65,8 @@ public class DropConsole : MonoBehaviour
     [SerializeField] RectTransform consolePanel;
     [SerializeField] Transform consoleLogParent;
     [SerializeField] InputField consoleInput;
-    [SerializeField] Color errorColor = new Color(0.9f, 0f, 0f);
-    [SerializeField] Color warningColor = new Color(1f, 0.9f, 0f);
+    [SerializeField] Color32 errorColor = new Color(0.9f, 0f, 0f);
+    [SerializeField] Color32 warningColor = new Color(1f, 0.9f, 0f);
 
     float panelHeight;
 
