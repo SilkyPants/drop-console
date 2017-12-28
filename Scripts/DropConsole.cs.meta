@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: 041f524d64e6a4faba7a6ad749f0759a
-timeCreated: 1514431735
+timeCreated: 1514452363
 licenseType: Free
 MonoImporter:
   externalObjects: {}
@@ -15,7 +15,7 @@ MonoImporter:
   - indicatorsGroup: {instanceID: 0}
   - warningIndicator: {fileID: 21300000, guid: 0a422e4b27012479ea094d09f9e64cce, type: 3}
   - errorIndicator: {fileID: 21300000, guid: 324f1c615db4f45bda9c76acd0dd9457, type: 3}
-  executionOrder: 0
+  executionOrder: -100
   icon: {instanceID: 0}
   userData: 
   assetBundleName: 
