@@ -42,14 +42,12 @@ class ConsoleCommand
 
 public class DropConsole : MonoBehaviour
 {
-
-    List<string> consoleLogHistory = new List<string>();
     List<string> consoleCommandHistory = new List<string>();
     Dictionary<string, ConsoleCommand> consoleCommandRepository = new Dictionary<string, ConsoleCommand>();
 
     [Header("Console Properties")]
     [Range(0.0f, 1.0f)]
-    [SerializeField] Font consoleFont;
+    [SerializeField] Font consoleFont = null;
     [SerializeField] int consoleFontSize = 18;
     public float animationTime = 0.1f;
     public bool clearOnHide = false;
@@ -57,7 +55,7 @@ public class DropConsole : MonoBehaviour
 
     [Header("UI Components")]
     [SerializeField] RectTransform consolePanel;
-    [SerializeField] Text consoleLog;
+    [SerializeField] Transform consoleLogParent;
     [SerializeField] InputField consoleInput;
 
     float panelHeight;
@@ -152,6 +150,8 @@ public class DropConsole : MonoBehaviour
         var scrollContentRect = scrollContentObject.AddComponent<RectTransform>();
         scrollContentObject.transform.SetParent(scrollViewportObject.transform, false);
 
+        console.consoleLogParent = scrollContentObject.transform;
+
         scrollContentRect.anchorMin = Vector2.zero;
         scrollContentRect.anchorMax = new Vector2(1f, 0f);
         scrollContentRect.pivot = new Vector2(0.5f, 0f);
@@ -164,17 +164,8 @@ public class DropConsole : MonoBehaviour
 
         var scrollContentVertLayout = scrollContentObject.AddComponent<VerticalLayoutGroup>();
         scrollContentVertLayout.padding = new RectOffset(4, 4, 4, 4);
+        scrollContentVertLayout.spacing = 1;
         scrollContentVertLayout.childAlignment = TextAnchor.LowerCenter;
-
-        var consoleLogObject = new GameObject("Console Log");
-        consoleLogObject.AddComponent<RectTransform>();
-        consoleLogObject.transform.SetParent(scrollContentObject.transform, false);
-
-        var consoleLogText = consoleLogObject.AddComponent<Text>();
-        consoleLogText.font = font;
-        consoleLogText.alignment = TextAnchor.LowerLeft;
-
-        console.consoleLog = consoleLogText;
 
         var vertScrollbarObject = new GameObject("Vertical Scrollbar");
         var vertScrollbarRect = vertScrollbarObject.AddComponent<RectTransform>();
@@ -372,7 +363,7 @@ public class DropConsole : MonoBehaviour
     void Start()
     {
 
-        if (consolePanel == null || consoleLog == null || consoleInput == null) {
+        if (consolePanel == null || consoleInput == null) {
 
             CleanLog.LogError("UI Components are not set up!");
 
@@ -394,11 +385,9 @@ public class DropConsole : MonoBehaviour
         if (consoleFont != null) {
             consoleInput.textComponent.font = consoleFont;
             consoleInput.placeholder.GetComponent<Text>().font = consoleFont;
-            consoleLog.font = consoleFont;
 
             consoleInput.textComponent.fontSize = consoleFontSize;
             consoleInput.placeholder.GetComponent<Text>().fontSize = consoleFontSize;
-            consoleLog.fontSize = consoleFontSize;
         }
 
         ParseCommand("version");
@@ -535,14 +524,29 @@ public class DropConsole : MonoBehaviour
         currentCommandIndex = index;
     }
 
+    void ClearLogHistory() {
+
+        foreach (Transform child in consoleLogParent) {
+            Destroy(child.gameObject);
+        }
+    }
+
     void AddToLogAndUpdate(string message)
     {
 
         if (!string.IsNullOrEmpty(message)) {
-            consoleLogHistory.Add(message);
-        }
 
-        consoleLog.text = string.Join(Environment.NewLine, consoleLogHistory.ToArray());
+            var consoleLogObject = new GameObject("Console Log");
+            consoleLogObject.AddComponent<RectTransform>();
+            consoleLogObject.transform.SetParent(consoleLogParent, false);
+
+            var consoleLogText = consoleLogObject.AddComponent<Text>();
+            consoleLogText.font = consoleFont;
+            consoleLogText.fontSize = consoleFontSize;
+            consoleLogText.alignment = TextAnchor.LowerLeft;
+            consoleLogText.text = message;
+
+        }
     }
 
     void RegisterCommand(ConsoleCommand newCommand)
@@ -627,11 +631,11 @@ public class DropConsole : MonoBehaviour
         }
 
         if (logToClear.Equals("all")) {
-            consoleLogHistory.Clear();
+            ClearLogHistory();
             consoleCommandHistory.Clear();
 
         } else if (logToClear.Equals("log")) {
-            consoleLogHistory.Clear();
+            ClearLogHistory();
 
         } else if (logToClear.Equals("cmd")) {
             consoleCommandHistory.Clear();
