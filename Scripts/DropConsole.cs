@@ -11,6 +11,14 @@ using System.Linq;
 
 public delegate string ConsoleCommandCallback(params string[] args);
 
+public static class Extensions {
+
+    public static string ToHex(this Color color) {
+        string hex = color.r.ToString("X2") + color.g.ToString("X2") + color.b.ToString("X2");
+        return hex;
+    }
+}
+
 class ConsoleCommand
 {
 
@@ -57,6 +65,8 @@ public class DropConsole : MonoBehaviour
     [SerializeField] RectTransform consolePanel;
     [SerializeField] Transform consoleLogParent;
     [SerializeField] InputField consoleInput;
+    [SerializeField] Color errorColor = new Color(0.9f, 0f, 0f);
+    [SerializeField] Color warningColor = new Color(1f, 0.9f, 0f);
 
     float panelHeight;
 
@@ -340,14 +350,13 @@ public class DropConsole : MonoBehaviour
 			case CleanLog.LogType.Error:
 			case CleanLog.LogType.Exception:
 			case CleanLog.LogType.Assert:
-
-				echo = "<color=#bb0000ff>" + echo + "</color>";
+                echo = "<color=#" + errorColor.ToHex() + ">" + echo + "</color>";
 
 				break;
 
 			case CleanLog.LogType.Warning:
 
-				echo = "<color=#ffa500ff>" + echo + "</color>";
+                echo = "<color=#" + warningColor.ToHex() + ">" + echo + "</color>";
 
 				break;
 
