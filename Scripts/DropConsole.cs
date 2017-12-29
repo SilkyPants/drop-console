@@ -380,64 +380,6 @@ public class DropConsole : MonoBehaviour
         RegisterCommand("loadScene", LoadScene, "Loads a scene added to the project via Build Settings");
         RegisterCommand("screenshot", TakeScreenshot, "filename [supersize] Saves a screenshot. Supersize is a factor to increase the resolution");
         RegisterCommand("version", PrintVersion, "Prints the current application version");
-
-		CleanLog.OnLoggedEvent += delegate(LogEntry logEntry) {
-            string echo = logEntry.Message;
-
-//			if (string.IsNullOrEmpty (tag) == false) {
-//				echo = "<b>[" + tag + "]</b> " + echo;
-//			}
-
-			switch (logEntry.LogType) {
-                case CleanLog.LogType.Error:
-    			case CleanLog.LogType.Exception:
-    			case CleanLog.LogType.Assert:
-                    echo = "<color=#" + errorColor.ToHex() + ">" + echo + "</color>";
-                    errorIndicator.gameObject.SetActive(true);
-                    break;
-
-    			case CleanLog.LogType.Warning:
-
-                    echo = "<color=#" + warningColor.ToHex() + ">" + echo + "</color>";
-                    warningIndicator.gameObject.SetActive(true);
-
-    				break;
-
-    			default:
-    				break;
-			}
-
-			ParseCommand ("echo " + echo);
-		};
-
-        Application.logMessageReceived += delegate (string logString, string stackTrace, UnityEngine.LogType type) {
-            string echo = logString;
-
-            switch (type)
-            {
-
-                case UnityEngine.LogType.Error:
-                case UnityEngine.LogType.Exception:
-                case UnityEngine.LogType.Assert:
-
-                    echo = "<color=#" + errorColor.ToHex() + ">" + echo + "</color>";
-                    errorIndicator.gameObject.SetActive(true);
-
-                    break;
-
-                case UnityEngine.LogType.Warning:
-
-                    echo = "<color=#" + warningColor.ToHex() + ">" + echo + "</color>";
-                    warningIndicator.gameObject.SetActive(true);
-
-                    break;
-
-                default:
-                    break;
-            }
-
-            ParseCommand("echo " + echo);
-        };
     }
 
     void Start()
@@ -484,6 +426,8 @@ public class DropConsole : MonoBehaviour
         Input.multiTouchEnabled = true;
 
         ParseCommand("version");
+
+        RegisterLogging();
     }
 
     void Update()
@@ -656,6 +600,69 @@ public class DropConsole : MonoBehaviour
             consoleLogText.text = message;
 
         }
+    }
+
+    void RegisterLogging()
+    {
+        
+        CleanLog.OnLoggedEvent += delegate (LogEntry logEntry)
+        {
+            string echo = logEntry.Message;
+
+            //          if (string.IsNullOrEmpty (tag) == false) {
+            //              echo = "<b>[" + tag + "]</b> " + echo;
+            //          }
+
+            switch (logEntry.LogType) {
+            case CleanLog.LogType.Error:
+            case CleanLog.LogType.Exception:
+            case CleanLog.LogType.Assert:
+                echo = "<color=#" + errorColor.ToHex() + ">" + echo + "</color>";
+                errorIndicator.gameObject.SetActive(true);
+                break;
+
+            case CleanLog.LogType.Warning:
+
+                echo = "<color=#" + warningColor.ToHex() + ">" + echo + "</color>";
+                warningIndicator.gameObject.SetActive(true);
+
+                break;
+
+            default:
+                break;
+            }
+
+            ParseCommand("echo " + echo);
+        };
+
+        Application.logMessageReceived += delegate (string logString, string stackTrace, UnityEngine.LogType type)
+        {
+            string echo = logString;
+
+            switch (type) {
+
+            case UnityEngine.LogType.Error:
+            case UnityEngine.LogType.Exception:
+            case UnityEngine.LogType.Assert:
+
+                echo = "<color=#" + errorColor.ToHex() + ">" + echo + "</color>";
+                errorIndicator.gameObject.SetActive(true);
+
+                break;
+
+            case UnityEngine.LogType.Warning:
+
+                echo = "<color=#" + warningColor.ToHex() + ">" + echo + "</color>";
+                warningIndicator.gameObject.SetActive(true);
+
+                break;
+
+            default:
+                break;
+            }
+
+            ParseCommand("echo " + echo);
+        };
     }
 
     void RegisterCommand(ConsoleCommand newCommand)
