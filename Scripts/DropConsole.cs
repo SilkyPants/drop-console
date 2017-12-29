@@ -481,12 +481,13 @@ public class DropConsole : MonoBehaviour
         warningIndicator.gameObject.SetActive(false);
         errorIndicator.gameObject.SetActive(false);
 
+        Input.multiTouchEnabled = true;
+
         ParseCommand("version");
     }
 
     void Update()
     {
-	
         if (consoleInput.isActiveAndEnabled && isConsoleShown) {
             if (consoleInput.isFocused) {
 				
@@ -504,7 +505,13 @@ public class DropConsole : MonoBehaviour
             }
         }
 
-        if (Input.GetKeyUp(consoleToggleKey)) {
+        bool showConsole = Input.GetKeyUp(consoleToggleKey);
+
+        if (Input.touchSupported && Input.multiTouchEnabled) {
+            showConsole |= (Input.touchCount == 4 && Input.GetTouch(0).tapCount == 2);
+        }
+
+        if (showConsole) {
             if (canProcessBackgroundInput) ToggleConsoleShown();
             else canProcessBackgroundInput = true;
         }
