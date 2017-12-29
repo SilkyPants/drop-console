@@ -463,7 +463,7 @@ public class DropConsole : MonoBehaviour
 
     #region Console visiblity methods
 
-    void ToggleConsoleShown(bool animate = true)
+    public void ToggleConsoleShown(bool animate = true)
     {
         if (consolePanel.gameObject.activeInHierarchy == false) return;
 
