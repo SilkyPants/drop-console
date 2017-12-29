@@ -401,7 +401,7 @@ public class DropConsole : MonoBehaviour
         consoleInput.onValidateInput += ValidateConsoleInput;
         consoleInput.onEndEdit.AddListener(delegate(string text)
             {
-                if (string.IsNullOrEmpty(text)) ToggleConsoleShown();
+                EndEditConsoleInput(text);
             });
 
         if (consoleFont != null) {
@@ -434,11 +434,7 @@ public class DropConsole : MonoBehaviour
     {
         if (consoleInput.isActiveAndEnabled && isConsoleShown) {
             if (consoleInput.isFocused) {
-				
-                if (Input.GetKeyUp(KeyCode.Tab)) {
-                    CleanLog.Log("Attempt auto complete");
-
-                } else if (Input.GetKeyDown(KeyCode.UpArrow) && !IsModifierKeyDown) {
+				if (Input.GetKeyDown(KeyCode.UpArrow) && !IsModifierKeyDown) {
 
                     SkipToCommandHistoryIndex(Mathf.Min(currentCommandIndex + 1, consoleCommandHistory.Count - 1));
 
@@ -527,6 +523,12 @@ public class DropConsole : MonoBehaviour
 
     #region Text events
 
+    private void EndEditConsoleInput(string text) 
+    {
+        if (hideOnLostFocus && string.IsNullOrEmpty(text)) 
+            ToggleConsoleShown();
+    }
+
     private char ValidateConsoleInput(string text, int charIndex, char addedChar)
     {
         char validChar = '\0';
@@ -550,6 +552,8 @@ public class DropConsole : MonoBehaviour
             // Clear the console
             consoleInput.text = string.Empty;
             consoleInput.ActivateInputField();
+        } else if (addedChar == '\t') {
+            ShowAutocompleteOptions(text);
         } else {
             validChar = addedChar;
         }
@@ -561,9 +565,20 @@ public class DropConsole : MonoBehaviour
 
     #region Core Methods
 
+    void ShowAutocompleteOptions(string text)
+    {
+        var commands = consoleCommandRepository.Keys.Where(x => x.StartsWith(text)).ToArray();
+
+        if (commands.Length == 1) {
+            consoleInput.text = commands[0] + " ";
+        }
+        else if (commands.Length > 1) {
+            ParseCommand("echo " + string.Join(" ", commands));
+        }
+    }
+
     void SkipToCommandHistoryIndex(int index)
     {
-
         if (index >= 0 && index < consoleCommandHistory.Count) {
 
             consoleInput.text = consoleCommandHistory[index];
@@ -577,8 +592,8 @@ public class DropConsole : MonoBehaviour
         currentCommandIndex = index;
     }
 
-    void ClearLogHistory() {
-
+    void ClearLogHistory() 
+    {
         foreach (Transform child in consoleLogParent) {
             Destroy(child.gameObject);
         }
@@ -586,7 +601,6 @@ public class DropConsole : MonoBehaviour
 
     void AddToLogAndUpdate(string message)
     {
-
         if (!string.IsNullOrEmpty(message)) {
 
             var consoleLogObject = new GameObject("Console Log");
