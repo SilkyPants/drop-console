@@ -51,9 +51,12 @@ public class DropConsole : MonoBehaviour
     Dictionary<string, ConsoleCommand> consoleCommandRepository = new Dictionary<string, ConsoleCommand>();
 
     [Header("Console Properties")]
-    [Range(0.0f, 1.0f)]
     [SerializeField] Font consoleFont = null;
-    [SerializeField] int consoleFontSize = 18;
+
+    [SerializeField]
+    [Range(10, 28)] 
+    int consoleFontSize = 18;
+
     [SerializeField] Sprite errorSprite;
     [SerializeField] Sprite warningSprite;
     public float animationTime = 0.1f;
