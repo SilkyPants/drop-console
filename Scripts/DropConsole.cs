@@ -56,12 +56,14 @@ public class DropConsole : MonoBehaviour
     [SerializeField]
     [Range(10, 28)] 
     int consoleFontSize = 18;
-
-    [SerializeField] Sprite errorSprite;
-    [SerializeField] Sprite warningSprite;
     public float animationTime = 0.1f;
     public bool clearOnHide = false;
     public KeyCode consoleToggleKey = KeyCode.BackQuote;
+    
+    public bool hideOnLostFocus = true;
+    
+    [SerializeField] Sprite errorSprite;
+    [SerializeField] Sprite warningSprite;
 
     [Header("UI Components")]
     [SerializeField] RectTransform consolePanel;
@@ -73,6 +75,8 @@ public class DropConsole : MonoBehaviour
     [SerializeField] CanvasGroup indicatorsGroup = null;
     [SerializeField] Image warningIndicator = null;
     [SerializeField] Image errorIndicator = null;
+
+    [SerializeField] CanvasGroup modalGroup = null;
 
     float panelHeight;
 
@@ -480,6 +484,8 @@ public class DropConsole : MonoBehaviour
 
         float animTime = animate ? animationTime : 0f;
 
+        modalGroup.blocksRaycasts = false;
+
         if (isConsoleShown) {
             consoleInput.ActivateInputField();
             yield return new WaitForFixedUpdate();
@@ -503,6 +509,11 @@ public class DropConsole : MonoBehaviour
 
                 consolePanel.anchoredPosition = Vector3.Lerp(start, end, t / animProgress);
                 indicatorsGroup.alpha = Mathf.Lerp(indicatorStart, indicatorEnd, t / animProgress);
+
+                if (modalGroup != null) {
+                    modalGroup.alpha = 1 - indicatorsGroup.alpha;
+                }
+
                 t += Time.fixedDeltaTime; // Goes from 0 to 1, incrementing by step each time
 
                 yield return new WaitForFixedUpdate();
@@ -511,6 +522,11 @@ public class DropConsole : MonoBehaviour
 
         consolePanel.anchoredPosition = end;
         indicatorsGroup.alpha = indicatorEnd;
+        
+        if (modalGroup != null) {
+            modalGroup.alpha = 1 - indicatorsGroup.alpha;
+            modalGroup.blocksRaycasts = isConsoleShown;
+        }
 
         if (isConsoleShown)
         {
