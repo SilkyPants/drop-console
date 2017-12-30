@@ -76,6 +76,9 @@ public class DropConsole : MonoBehaviour
     [SerializeField] Image warningIndicator = null;
     [SerializeField] Image errorIndicator = null;
 
+    [SerializeField] Text fpsText = null;
+    [SerializeField] GameObject fpsIndicator = null;
+
     [SerializeField] CanvasGroup modalGroup = null;
 
     float panelHeight;
@@ -419,10 +422,14 @@ public class DropConsole : MonoBehaviour
 
             warningIndicator.sprite = warningSprite;
             warningIndicator.color = warningColor;
+
+			warningIndicator.gameObject.SetActive(false);
+			errorIndicator.gameObject.SetActive(false);
         }
 
-        warningIndicator.gameObject.SetActive(false);
-        errorIndicator.gameObject.SetActive(false);
+        if (fpsText != null) {
+            RegisterCommand("fps", ToggleFPS, "[show|hide] Shows or hides FPS counter");
+        }
 
         Input.multiTouchEnabled = true;
 
@@ -433,6 +440,11 @@ public class DropConsole : MonoBehaviour
 
     void Update()
     {
+        if (fpsText != null && fpsText.gameObject.activeInHierarchy) {
+            var fps = 1f / Time.unscaledDeltaTime;
+            fpsText.text = fps.ToString("N0");
+        }
+
         if (consoleInput.isActiveAndEnabled && isConsoleShown) {
             if (consoleInput.isFocused) {
 				if (Input.GetKeyDown(KeyCode.UpArrow) && !IsModifierKeyDown) {
@@ -787,6 +799,16 @@ public class DropConsole : MonoBehaviour
         }
 
         return returnMsg;
+    }
+
+    string ToggleFPS(params string[] args)
+    {
+        if (args.Length > 0 && (args[0].Equals("show") || args[0].Equals("hide"))) {
+            fpsIndicator.SetActive(args[0].Equals("show"));
+            return string.Empty;
+        }
+
+        return "Requires show or hide argument";
     }
 
     string PrintVersion(params string[] args)
