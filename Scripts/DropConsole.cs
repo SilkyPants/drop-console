@@ -56,11 +56,15 @@ public class DropConsole : MonoBehaviour
     [SerializeField]
     [Range(10, 28)] 
     int consoleFontSize = 18;
-    public float animationTime = 0.1f;
-    public bool clearOnHide = false;
-    public KeyCode consoleToggleKey = KeyCode.BackQuote;
+
+    [SerializeField] float animationTime = 0.1f;
+    [SerializeField] bool clearOnHide = false;
+    [SerializeField] KeyCode consoleToggleKey = KeyCode.BackQuote;
+
+    [SerializeField] int numTouchToShow = 3;
+    [SerializeField] int numTapToShow = 3;
     
-    public bool hideOnLostFocus = true;
+    [SerializeField] bool hideOnLostFocus = true;
     
     [SerializeField] Sprite errorSprite;
     [SerializeField] Sprite warningSprite;
@@ -461,7 +465,7 @@ public class DropConsole : MonoBehaviour
         bool showConsole = Input.GetKeyUp(consoleToggleKey);
 
         if (Input.touchSupported && Input.multiTouchEnabled) {
-            showConsole |= (Input.touchCount == 4 && Input.GetTouch(0).tapCount == 2);
+            showConsole |= (Input.touchCount == numTouchToShow && Input.GetTouch(0).tapCount == numTapToShow);
         }
 
         if (showConsole) {
