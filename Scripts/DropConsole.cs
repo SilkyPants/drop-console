@@ -403,10 +403,7 @@ public class DropConsole : MonoBehaviour
         consolePanel.anchoredPosition = Vector2.zero;
 
         consoleInput.onValidateInput += ValidateConsoleInput;
-        consoleInput.onEndEdit.AddListener(delegate(string text)
-            {
-                EndEditConsoleInput(text);
-            });
+		consoleInput.onEndEdit.AddListener(EndEditConsoleInput);
 
         if (consoleFont != null) {
             consoleInput.textComponent.font = consoleFont;
@@ -634,7 +631,6 @@ public class DropConsole : MonoBehaviour
 
     void RegisterLogging()
     {
-        
         CleanLog.OnLoggedEvent += delegate (LogEntry logEntry)
         {
             string echo = logEntry.Message;
@@ -706,7 +702,6 @@ public class DropConsole : MonoBehaviour
 
     void ParseCommand(string text)
     {
-
         if (string.IsNullOrEmpty(text) == false) {
 
             string command = string.Empty;
@@ -733,7 +728,6 @@ public class DropConsole : MonoBehaviour
 
     string ExecuteCommand(string command, params string[] args)
     {
-
         if (consoleCommandRepository.ContainsKey(command)) {
 
             ConsoleCommand cmd = consoleCommandRepository[command];
