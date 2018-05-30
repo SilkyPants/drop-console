@@ -381,6 +381,10 @@ public class DropConsole : MonoBehaviour
             return;
         }
 
+        CleanLog.LogFilter = CleanLog.LogType.All;
+        CleanLog.LogFileFilter = CleanLog.LogType.All;
+        CleanLog.Setup(500, true);
+
         Instance = this;
 
         DontDestroyOnLoad(this.gameObject);

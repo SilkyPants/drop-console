@@ -47,12 +47,12 @@ public static class CleanLog
     public static LogType LogFilter {
         get;
         set;
-    } = LogType.All;
+    }
 
     public static LogType LogFileFilter {
         get;
         set;
-    } = LogType.All;
+    }
 
     public static string CurrentClass {
         get {
@@ -77,16 +77,22 @@ public static class CleanLog
     public static int MaxLinesInLog {
         get;
         private set;
-    } = 500;
+    }
 
     public static bool LogToUnityDebug {
         get;
         private set;
-    } = true;
+    }
 
-    public static void Setup (Type logTagsEnumerationType, int maxLinesInLog, bool logToUnityDebug)
+    public static void Setup(Type logTagsEnumerationType, int maxLinesInLog, bool logToUnityDebug)
     {
         LogTagsEnumerationType = logTagsEnumerationType;
+        MaxLinesInLog = maxLinesInLog;
+        LogToUnityDebug = logToUnityDebug;
+    }
+
+    public static void Setup(int maxLinesInLog, bool logToUnityDebug)
+    {
         MaxLinesInLog = maxLinesInLog;
         LogToUnityDebug = logToUnityDebug;
     }
