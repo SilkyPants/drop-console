@@ -1,18 +1,12 @@
 {
-    "name": "com.nextfaze.unity.drop-console",
-    "version": "0.0.1",
+    "name": "com.silkypants.dropconsole",
     "displayName": "Drop Console",
-    "description": "Quake style drop console for easier debugging and runtime commands",
+    "version": "1.0.0",
     "unity": "2019.1",
-    "dependencies": {
-   },
-   "keywords": [
-    ],
+    "description": "Quake like drop down console for Unity projects",
     "author": {
       "name": "Dan Silk",
       "email": "dfsilk@gmail.com",
       "url": "https://github.com/SilkyPantsDan/drop-console"
     }
-  }
-  
-  
+}

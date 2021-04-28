@@ -1,10 +1,11 @@
-﻿using UnityEngine;
+﻿using System;
 using System.Collections;
-using UnityEngine.UI;
 using System.Collections.Generic;
-using System;
-using System.Text;
 using System.Linq;
+using System.Text;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public delegate string ConsoleCommandCallback(params string[] args);
 
@@ -52,6 +53,8 @@ public class DropConsole : MonoBehaviour
 
     [Header("Console Properties")]
     [SerializeField] Font consoleFont = null;
+    public Font ConsoleFont => consoleFont;
+    private void SetConsoleFont(Font font) => consoleFont = font;
 
     [SerializeField]
     [Range(10, 28)] 
@@ -66,8 +69,8 @@ public class DropConsole : MonoBehaviour
     
     [SerializeField] bool hideOnLostFocus = true;
     
-    [SerializeField] Sprite errorSprite;
-    [SerializeField] Sprite warningSprite;
+    [SerializeField] Sprite errorSprite = null;
+    [SerializeField] Sprite warningSprite = null;
 
     [Header("UI Components")]
     [SerializeField] RectTransform consolePanel;
@@ -81,10 +84,11 @@ public class DropConsole : MonoBehaviour
     [SerializeField] Image errorIndicator = null;
 
     [SerializeField] Text fpsText = null;
-    [SerializeField] GameObject fpsIndicator = null;
+    private static readonly int FpsSmoothedRange = 30;
+    private Queue<float> fpsSmoothed = new Queue<float>(DropConsole.FpsSmoothedRange);
 
     [SerializeField] CanvasGroup modalGroup = null;
-
+        
     float panelHeight;
 
     public bool isConsoleShown = false;
@@ -119,20 +123,39 @@ public class DropConsole : MonoBehaviour
 
     static void CreateConsoleObjects()
     {
-
-        var font = Resources.GetBuiltinResource<Font>("Arial.ttf");
         var consoleObject = new GameObject("Drop Down Console");
 
         var consoleCanvas = consoleObject.AddComponent<Canvas>();
         consoleCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
         consoleCanvas.sortingOrder = 32767;
 
-        consoleObject.AddComponent<CanvasScaler>();
+        var canvasScaler = consoleObject.AddComponent<CanvasScaler>();
+        canvasScaler.referenceResolution = new Vector2(1280, 720);
+        canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+
         consoleObject.AddComponent<GraphicRaycaster>();
 
         var console = consoleObject.AddComponent<DropConsole>();
 
-        //Create the rest of the UI programatically
+        var modalGroupObject = new GameObject("Modal Panel");
+        modalGroupObject.transform.SetParent(console.transform, false);
+
+        var modalGroupTransform = modalGroupObject.AddComponent<RectTransform>();
+
+        modalGroupTransform.anchorMin = Vector2.zero;
+        modalGroupTransform.anchorMax = Vector2.one;
+        modalGroupTransform.pivot = new Vector2(0.5f, .5f);
+        modalGroupTransform.anchoredPosition = Vector2.zero;
+
+        var modalGroupImage = modalGroupObject.AddComponent<Image>();
+        modalGroupImage.color = new Color(0, 0, 0, .5f);
+        modalGroupImage.raycastTarget = false;
+
+        console.modalGroup = modalGroupObject.AddComponent<CanvasGroup>();
+        console.modalGroup.blocksRaycasts = false;
+        console.modalGroup.alpha = 0;
+
+        // Create the rest of the UI programatically
         // Indicators
         var indicatorsObject = new GameObject("Indicators");
         indicatorsObject.transform.SetParent(consoleObject.transform, false);
@@ -158,6 +181,15 @@ public class DropConsole : MonoBehaviour
         console.indicatorsGroup.interactable = false;
         console.indicatorsGroup.blocksRaycasts = false;
 
+        var fpsIndicator = new GameObject("FPS Indicator");
+        fpsIndicator.transform.SetParent(indicatorsObject.transform, false);
+        fpsIndicator.AddComponent<LayoutElement>().preferredWidth = 128f;
+        fpsIndicator.SetActive(false);
+        console.fpsText = fpsIndicator.AddComponent<Text>();
+        console.fpsText.font = console.ConsoleFont;
+        console.fpsText.fontSize = console.consoleFontSize;
+        console.fpsText.color = Color.white;
+
         var indicatorSpacer = new GameObject("Spacer");
         indicatorSpacer.transform.SetParent(indicatorsObject.transform, false);
         indicatorSpacer.AddComponent<LayoutElement>().flexibleWidth = float.MaxValue;
@@ -165,12 +197,18 @@ public class DropConsole : MonoBehaviour
         var warningIndicator = new GameObject("Warning Indicator");
         warningIndicator.transform.SetParent(indicatorsObject.transform, false);
         warningIndicator.AddComponent<LayoutElement>().preferredWidth = 64f;
+        warningIndicator.SetActive(false);
         console.warningIndicator = warningIndicator.AddComponent<Image>();
+        console.warningIndicator.sprite = Resources.Load<Sprite>("Sprites/warning");
+        console.warningIndicator.color = console.warningColor;
 
         var errorIndicator = new GameObject("Error Indicator");
         errorIndicator.transform.SetParent(indicatorsObject.transform, false);
         errorIndicator.AddComponent<LayoutElement>().preferredWidth = 64f;
+        errorIndicator.SetActive(false);
         console.errorIndicator = errorIndicator.AddComponent<Image>();
+        console.errorIndicator.sprite = Resources.Load<Sprite>("Sprites/exclamation");
+        console.errorIndicator.color = console.errorColor;
 
         // Panel
         var panelObject = new GameObject("Console Panel");
@@ -297,7 +335,7 @@ public class DropConsole : MonoBehaviour
         placeholderRect.offsetMax = new Vector2(-10f, -7f);
 
         var placeholderText = placeholderObject.AddComponent<Text>();
-        placeholderText.font = font;
+        placeholderText.font = console.ConsoleFont;
         placeholderText.fontStyle = FontStyle.Normal;
         placeholderText.text = "Enter command or type <b>help</b> for a list of available commands";
         placeholderText.alignment = TextAnchor.MiddleLeft;
@@ -307,13 +345,13 @@ public class DropConsole : MonoBehaviour
         var inputTextRect = inputTextObject.AddComponent<RectTransform>();
         inputTextObject.transform.SetParent(inputObject.transform, false);
 
-        inputTextRect.anchorMin = Vector2.zero;
-        inputTextRect.anchorMax = Vector2.one;
-        inputTextRect.offsetMin = new Vector2(10f, 6f);
-        inputTextRect.offsetMax = new Vector2(-10f, -7f);
+        inputTextRect.anchorMin = placeholderRect.anchorMin;
+        inputTextRect.anchorMax = placeholderRect.anchorMax;
+        inputTextRect.offsetMin = placeholderRect.offsetMin;
+        inputTextRect.offsetMax = placeholderRect.offsetMax;
 
         var inputText = inputTextObject.AddComponent<Text>();
-        inputText.font = font;
+        inputText.font = console.ConsoleFont;
         inputText.alignment = TextAnchor.MiddleLeft;
         inputText.supportRichText = false;
 
@@ -321,8 +359,6 @@ public class DropConsole : MonoBehaviour
         inputField.textComponent = inputText;
 
         /// -------- END Creating text input --------
-
-        //consoleObject.hideFlags = HideFlags.HideAndDontSave;
 
         if (UnityEngine.EventSystems.EventSystem.current == null) {
             var eventSystem = new GameObject("Event System");
@@ -334,7 +370,6 @@ public class DropConsole : MonoBehaviour
 
     public static void RegisterCommand(string command, ConsoleCommandCallback invoke, string helpText = "")
     {
-
         CheckForInstance();
 
         var newCommand = new ConsoleCommand(command, invoke, helpText);
@@ -343,7 +378,6 @@ public class DropConsole : MonoBehaviour
 
     public static void AddToLog(string format, params string[] args)
     {
-		
         CheckForInstance();
 
         Instance.AddToLogAndUpdate(string.Format(format, args));
@@ -381,6 +415,11 @@ public class DropConsole : MonoBehaviour
             return;
         }
 
+        if (ConsoleFont == null)
+        {
+            SetConsoleFont(Resources.Load<Font>("Fonts/DroidSansMono") ?? Resources.GetBuiltinResource<Font>("Arial.ttf"));
+        }
+
         CleanLog.LogFilter = CleanLog.LogType.All;
         CleanLog.LogFileFilter = CleanLog.LogType.All;
         CleanLog.Setup(500, true);
@@ -416,9 +455,9 @@ public class DropConsole : MonoBehaviour
         consoleInput.onValidateInput += ValidateConsoleInput;
 		consoleInput.onEndEdit.AddListener(EndEditConsoleInput);
 
-        if (consoleFont != null) {
-            consoleInput.textComponent.font = consoleFont;
-            consoleInput.placeholder.GetComponent<Text>().font = consoleFont;
+        if (ConsoleFont != null) {
+            consoleInput.textComponent.font = ConsoleFont;
+            consoleInput.placeholder.GetComponent<Text>().font = ConsoleFont;
 
             consoleInput.textComponent.fontSize = consoleFontSize;
             consoleInput.placeholder.GetComponent<Text>().fontSize = consoleFontSize;
@@ -441,16 +480,22 @@ public class DropConsole : MonoBehaviour
 
         Input.multiTouchEnabled = true;
 
-        ParseCommand("version");
-
         RegisterLogging();
+
+        ParseCommand("version");
     }
 
     void Update()
     {
-        if (fpsText != null && fpsText.gameObject.activeInHierarchy) {
+        if (fpsText != null && fpsText.isActiveAndEnabled) {
             var fps = 1f / Time.unscaledDeltaTime;
-            fpsText.text = fps.ToString("N0");
+            this.fpsSmoothed.Enqueue(fps);
+
+            if (this.fpsSmoothed.Count > DropConsole.FpsSmoothedRange) fpsSmoothed.Dequeue();
+
+            fps = fpsSmoothed.Average();
+
+            fpsText.text = "FPS: " + fps.ToString("N0");
         }
 
         if (consoleInput.isActiveAndEnabled && isConsoleShown) {
@@ -501,19 +546,19 @@ public class DropConsole : MonoBehaviour
 
         float animTime = animate ? animationTime : 0f;
 
-        modalGroup.blocksRaycasts = false;
+        if (modalGroup != null) modalGroup.blocksRaycasts = false;
 
-        if (isConsoleShown) {
+        if (isConsoleShown)
+        {
             consoleInput.ActivateInputField();
             yield return new WaitForFixedUpdate();
             consoleInput.MoveTextEnd(false);
-
         } else {
-            consoleInput.DeactivateInputField();
-
             if (clearOnHide) {
                 consoleInput.text = string.Empty;
             }
+
+            consoleInput.OnDeselect(new BaseEventData(EventSystem.current));
         }
 
         if (animTime > 0 && !start.Equals(end)) {
@@ -550,6 +595,8 @@ public class DropConsole : MonoBehaviour
             errorIndicator.gameObject.SetActive(false);
             warningIndicator.gameObject.SetActive(false);
         }
+
+        animateConsoleCoroutine = null;
     }
 
     #endregion
@@ -558,7 +605,7 @@ public class DropConsole : MonoBehaviour
 
     private void EndEditConsoleInput(string text) 
     {
-        if (hideOnLostFocus && string.IsNullOrEmpty(text)) 
+        if (animateConsoleCoroutine != null && hideOnLostFocus && string.IsNullOrEmpty(text)) 
             ToggleConsoleShown();
     }
 
@@ -641,7 +688,7 @@ public class DropConsole : MonoBehaviour
             consoleLogObject.transform.SetParent(consoleLogParent, false);
 
             var consoleLogText = consoleLogObject.AddComponent<Text>();
-            consoleLogText.font = consoleFont;
+            consoleLogText.font = ConsoleFont;
             consoleLogText.fontSize = consoleFontSize;
             consoleLogText.alignment = TextAnchor.LowerLeft;
             consoleLogText.text = message;
@@ -663,6 +710,8 @@ public class DropConsole : MonoBehaviour
             case CleanLog.LogType.Error:
             case CleanLog.LogType.Exception:
             case CleanLog.LogType.Assert:
+
+                echo += "\n\nStack Trace:\n" + logEntry.StackFrames.ToString();
                 echo = "<color=#" + errorColor.ToHex() + ">" + echo + "</color>";
                 errorIndicator.gameObject.SetActive(true);
                 break;
@@ -690,6 +739,8 @@ public class DropConsole : MonoBehaviour
             case UnityEngine.LogType.Error:
             case UnityEngine.LogType.Exception:
             case UnityEngine.LogType.Assert:
+
+                echo += "\n\nStack Trace:\n" + stackTrace;
 
                 echo = "<color=#" + errorColor.ToHex() + ">" + echo + "</color>";
                 errorIndicator.gameObject.SetActive(true);
@@ -812,7 +863,7 @@ public class DropConsole : MonoBehaviour
     string ToggleFPS(params string[] args)
     {
         if (args.Length > 0 && (args[0].Equals("show") || args[0].Equals("hide"))) {
-            fpsIndicator.SetActive(args[0].Equals("show"));
+            fpsText.gameObject.SetActive(args[0].Equals("show"));
             return string.Empty;
         }
 
@@ -871,7 +922,6 @@ public class DropConsole : MonoBehaviour
 
     IEnumerator CaptureScreenshot(string filename, int superSize)
     {
-
         consolePanel.anchoredPosition = Vector2.zero;
 
         yield return new WaitForEndOfFrame();

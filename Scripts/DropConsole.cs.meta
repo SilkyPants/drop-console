@@ -1,21 +1,10 @@
 fileFormatVersion: 2
-guid: 041f524d64e6a4faba7a6ad749f0759a
-timeCreated: 1514514042
-licenseType: Free
+guid: 9eae53db9ba9c4c769ede2067ed95a66
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences:
-  - consoleFont: {fileID: 12800000, guid: 69bb478b63d7b4706bd15f863757f7e6, type: 3}
-  - errorSprite: {fileID: 21300000, guid: 324f1c615db4f45bda9c76acd0dd9457, type: 3}
-  - warningSprite: {fileID: 21300000, guid: 0a422e4b27012479ea094d09f9e64cce, type: 3}
-  - consolePanel: {instanceID: 0}
-  - consoleLogParent: {instanceID: 0}
-  - consoleInput: {instanceID: 0}
-  - indicatorsGroup: {instanceID: 0}
-  - warningIndicator: {fileID: 21300000, guid: 0a422e4b27012479ea094d09f9e64cce, type: 3}
-  - errorIndicator: {fileID: 21300000, guid: 324f1c615db4f45bda9c76acd0dd9457, type: 3}
-  executionOrder: -100
+  defaultReferences: []
+  executionOrder: 0
   icon: {instanceID: 0}
   userData: 
   assetBundleName: 
