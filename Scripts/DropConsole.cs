@@ -454,6 +454,7 @@ public class DropConsole : MonoBehaviour
 
         consoleInput.onValidateInput += ValidateConsoleInput;
 		consoleInput.onEndEdit.AddListener(EndEditConsoleInput);
+        
 
         if (ConsoleFont != null) {
             consoleInput.textComponent.font = ConsoleFont;
@@ -508,6 +509,10 @@ public class DropConsole : MonoBehaviour
                     
                     SkipToCommandHistoryIndex(Mathf.Max(currentCommandIndex - 1, -1));
                 }
+            }
+            else if (hideOnLostFocus)
+            {
+                //ToggleConsoleShown();
             }
         }
 
@@ -605,7 +610,7 @@ public class DropConsole : MonoBehaviour
 
     private void EndEditConsoleInput(string text) 
     {
-        if (animateConsoleCoroutine != null && hideOnLostFocus && string.IsNullOrEmpty(text)) 
+        if (hideOnLostFocus && string.IsNullOrEmpty(text)) 
             ToggleConsoleShown();
     }
 
